@@ -20,7 +20,7 @@ public class Main {
         try {
             String ruta = "data/clientes.json";
             red = CargadorJSON.CargarDesdeArchivo(ruta);
-            System.out.println("Se cargaron " + red.CantidadClientes() + " clientes desde el archivo.");
+            System.out.println("Se cargaron " + red.cantidadClientes() + " clientes desde el archivo.");
         } catch (IOException e) {
             System.out.println("No se pudo cargar el archivo, empezando con lista vacia.");
         }
@@ -50,7 +50,7 @@ public class Main {
                     System.out.print("Scoring: ");
                     int scorr = sc.nextInt();
                     try {
-                        red.AgregarCliente(nom, scorr);
+                        red.agregarCliente(nom, scorr);
                         System.out.println("Cliente agregado.");
                     } catch (Exception e) {
                         System.out.println("Error: " + e.getMessage());
@@ -59,7 +59,7 @@ public class Main {
                 case 2:
                     System.out.print("Nombre a buscar: ");
                     String nombreBusq = sc.nextLine();
-                    Cliente c = red.BuscarPorNombre(nombreBusq);
+                    Cliente c = red.buscarPorNombre(nombreBusq);
                     if (c != null) {
                         System.out.println("Encontrado: " + c);
                     } else {
@@ -69,7 +69,7 @@ public class Main {
                 case 3:
                     System.out.print("Scoring a buscar: ");
                     int scoreBusq = sc.nextInt();
-                    Cliente c2 = red.BuscarPorScoring(scoreBusq);
+                    Cliente c2 = red.buscarPorScoring(scoreBusq);
                     if (c2 != null) {
                         System.out.println("Encontrado: " + c2);
                     } else {
@@ -81,19 +81,19 @@ public class Main {
                     String sol = sc.nextLine();
                     System.out.print("A quien quiere seguir: ");
                     String obj = sc.nextLine();
-                    red.EnviarSolicitudSeguimiento(sol, obj);
+                    red.enviarSolicitudSeguimiento(sol, obj);
                     System.out.println("Solicitud enviada.");
                     break;
                 case 5:
-                    if (red.HaySolicitudesPendientes()) {
-                        SolicitudSeguimiento s = red.ProcesarSiguienteSolicitud();
+                    if (red.haySolicitudesPendientes()) {
+                        SolicitudSeguimiento s = red.procesarSiguienteSolicitud();
                         System.out.println("Procesada: " + s.getSolicitante() + " -> " + s.getObjetivo());
                     } else {
                         System.out.println("No hay solicitudes pendientes.");
                     }
                     break;
                 case 6:
-                    ArrayList<Accion> hist = red.ObtenerHistorialAcciones();
+                    ArrayList<Accion> hist = red.obtenerHistorialAcciones();
                     if (hist.isEmpty()) {
                         System.out.println("El historial esta vacio.");
                     } else {
@@ -103,18 +103,18 @@ public class Main {
                     }
                     break;
                 case 7:
-                    if (red.HayAccionesParaDeshacer()) {
-                        Accion desh = red.DeshacerUltimaAccion();
+                    if (red.hayAccionesParaDeshacer()) {
+                        Accion desh = red.deshacerUltimaAccion();
                         System.out.println("Se deshizo: " + desh.getTipo());
                     } else {
                         System.out.println("No hay acciones para deshacer.");
                     }
                     break;
                 case 8:
-                    System.out.println("Total clientes: " + red.CantidadClientes());
+                    System.out.println("Total clientes: " + red.cantidadClientes());
                     break;
                 case 9:
-                    ArrayList<SolicitudSeguimiento> segs = red.ObtenerSeguimientos();
+                    ArrayList<SolicitudSeguimiento> segs = red.obtenerSeguimientos();
                     if (segs.isEmpty()) {
                         System.out.println("No hay seguimientos registrados.");
                     } else {
@@ -128,7 +128,7 @@ public class Main {
                 case 10:
                     System.out.print("Nombre del cliente para ver a quien sigue: ");
                     String nombreSeguidor = sc.nextLine();
-                    ArrayList<String> seguidos = red.ObtenerSeguidosPor(nombreSeguidor);
+                    ArrayList<String> seguidos = red.obtenerSeguidosPor(nombreSeguidor);
                     if (seguidos.isEmpty()) {
                         System.out.println(nombreSeguidor + " no sigue a nadie o no existe.");
                     } else {

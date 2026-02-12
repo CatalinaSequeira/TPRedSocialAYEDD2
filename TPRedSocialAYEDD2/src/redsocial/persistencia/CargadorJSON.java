@@ -18,9 +18,9 @@ public class CargadorJSON {
 
     public static RedSocialEmpresarial CargarDesdeArchivo(String rutaArchivo) throws IOException {
         String contenido = leerArchivo(rutaArchivo);
-        List<Cliente> clientes = ParsearClientes(contenido);
+        List<Cliente> clientes = parsearClientes(contenido);
         RedSocialEmpresarial sistema = new RedSocialEmpresarial();
-        sistema.CargarClientesIniciales(clientes);
+        sistema.cargarClientesIniciales(clientes);
         return sistema;
     }
 
@@ -35,7 +35,7 @@ public class CargadorJSON {
         return sb.toString();
     }
 
-    public static List<Cliente> ParsearClientes(String json) {
+    public static List<Cliente> parsearClientes(String json) {
         ArrayList<Cliente> clientes = new ArrayList<Cliente>();
         Pattern p = Pattern.compile("\"nombre\"\\s*:\\s*\"([^\"]+)\"\\s*,\\s*\"scoring\"\\s*:\\s*(\\d+)");
         Matcher m = p.matcher(json);

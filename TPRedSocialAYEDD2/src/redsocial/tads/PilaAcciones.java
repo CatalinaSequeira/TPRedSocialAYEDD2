@@ -9,35 +9,35 @@ public class PilaAcciones implements PilaAccionesTDA {
   private Accion[] elementos;
   private int indice;
 
-  public void InicializarPila() {
+  public void inicializarPila() {
     elementos = new Accion[100];
     indice = 0;
   }
 
-  public void Apilar(Accion a) {
+  public void apilar(Accion a) {
     elementos[indice] = a;
     indice++;
   }
 
-  public void Desapilar() {
+  public void desapilar() {
     if (indice > 0) {
       indice--;
     }
   }
 
-  public boolean PilaVacia() {
+  public boolean pilaVacia() {
     return (indice == 0);
   }
 
-  public Accion Tope() {
+  public Accion tope() {
     return elementos[indice - 1];
   }
 
-  public int Cantidad() {
+  public int cantidad() {
     return indice;
   }
 
-  public Accion ObtenerEn(int pos) {
+  public Accion obtenerEn(int pos) {
     return elementos[pos];
   }
 }

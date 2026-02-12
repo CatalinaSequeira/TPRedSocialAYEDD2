@@ -6,17 +6,17 @@ import redsocial.modelo.Accion;
  * TAD Pila de Acciones - para el historial
  */
 public interface PilaAccionesTDA {
-  void InicializarPila();
+  void inicializarPila();
 
-  void Apilar(Accion a);
+  void apilar(Accion a);
 
-  void Desapilar();
+  void desapilar();
 
-  boolean PilaVacia();
+  boolean pilaVacia();
 
-  Accion Tope();
+  Accion tope();
 
-  int Cantidad();
+  int cantidad();
 
-  Accion ObtenerEn(int pos);
+  Accion obtenerEn(int pos);
 }

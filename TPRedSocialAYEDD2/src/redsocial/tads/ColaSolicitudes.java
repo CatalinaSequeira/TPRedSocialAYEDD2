@@ -10,28 +10,28 @@ public class ColaSolicitudes implements ColaSolicitudesTDA {
     private int indice;
     private int frente;
 
-    public void InicializarCola() {
+    public void inicializarCola() {
         elementos = new SolicitudSeguimiento[100];
         indice = 0;
         frente = 0;
     }
 
-    public void Acolar(SolicitudSeguimiento s) {
+    public void acolar(SolicitudSeguimiento s) {
         elementos[indice] = s;
         indice++;
     }
 
-    public void Desacolar() {
-        if (!ColaVacia()) {
+    public void desacolar() {
+        if (!colaVacia()) {
             frente++;
         }
     }
 
-    public boolean ColaVacia() {
+    public boolean colaVacia() {
         return (frente >= indice);
     }
 
-    public SolicitudSeguimiento Primero() {
+    public SolicitudSeguimiento primero() {
         return elementos[frente];
     }
 }
