@@ -1,3 +1,5 @@
+package redsocial.app;
+
 import redsocial.modelo.Accion;
 import redsocial.modelo.Cliente;
 import redsocial.modelo.SolicitudSeguimiento;

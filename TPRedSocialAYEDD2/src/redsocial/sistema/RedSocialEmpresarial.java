@@ -53,7 +53,7 @@ public class RedSocialEmpresarial {
       historial.apilar(acc);
     }
   }
-  //cambiar los nombres de los metodos para que empiecen con minuscula
+
   //camabir a hashmap --> diccionario
   public Cliente buscarPorNombre(String nombre) {
     for (int i = 0; i < clientes.size(); i++) {
@@ -63,7 +63,7 @@ public class RedSocialEmpresarial {
     }
     return null;
   }
-
+  //camabir a hashmap --> diccionario
   public Cliente buscarPorScoring(int scoring) {
     for (int i = 0; i < clientes.size(); i++) {
       if (clientes.get(i).getScoring() == scoring) {
