@@ -8,6 +8,7 @@ import redsocial.sistema.RedSocialEmpresarial;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -40,6 +41,7 @@ public class Main {
             System.out.println("8. Cantidad de clientes");
             System.out.println("9. Listar seguimientos");
             System.out.println("10. Ver a quien sigue un cliente");
+            System.out.println("11. Imprimir cuarto nivel de ABB");
             System.out.println("0. Salir");
             System.out.print("Opcion: ");
             opcion = sc.nextInt();
@@ -144,6 +146,30 @@ public class Main {
                         for (String seguido : seguidos) {
                             System.out.println("  - " + seguido);
                         }
+                    }
+                    break;
+                case 11:
+                    List<Cliente> nivel4 = red.obtenerClientesCuartoNivelABB();
+
+                    if (nivel4.isEmpty()) {
+                        System.out.println("No hay clientes en el cuarto nivel del ABB.");
+                    } else {
+                        System.out.println("Clientes en el cuarto nivel del ABB:");
+                        for (Cliente cli : nivel4) {
+                            System.out.println(" - " + cli.getNombre() +
+                                    " (scoring: " + cli.getScoring() +
+                                    ", seguidores: " + cli.getSeguidos().size() + ")");
+                        }
+
+                        Cliente masSeguido = nivel4.get(0);
+                        for (Cliente cli : nivel4) {
+                            if (cli.getSeguidos().size() > masSeguido.getSeguidos().size()) {
+                                masSeguido = cli;
+                            }
+                        }
+
+                        System.out.println("\nEl cliente con mas seguidores en nivel 4 es: "
+                                + masSeguido.getNombre());
                     }
                     break;
                 case 0:

@@ -6,7 +6,7 @@ import java.util.Set;
 /**
  * Representa un cliente de la red social
  */
-public class Cliente {
+public class Cliente implements Comparable<Cliente> {
   private String nombre;
   private int scoring;
 
@@ -45,7 +45,7 @@ public class Cliente {
     }
 
     if (seguidos.size() >= 2) {
-      throw new IllegalStateException("Un cliente solo puede seguir hasta dos clientes");
+      throw new IllegalStateException("Un cliente solo puede seguir hasta dos clientes y %s ya sigue a %s".formatted(nombre, seguidos));
     }
 
     seguidos.add(key);
@@ -68,5 +68,10 @@ public class Cliente {
   @Override
   public int hashCode() {
     return this.nombre.hashCode();
+  }
+
+  @Override
+  public int compareTo(Cliente o) {
+    return this.scoring - o.scoring;
   }
 }

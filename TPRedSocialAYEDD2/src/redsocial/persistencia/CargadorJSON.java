@@ -1,5 +1,9 @@
 package redsocial.persistencia;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import redsocial.modelo.Cliente;
 import redsocial.sistema.RedSocialEmpresarial;
 
@@ -36,14 +40,32 @@ public class CargadorJSON {
     }
 
     public static List<Cliente> parsearClientes(String json) {
-        ArrayList<Cliente> clientes = new ArrayList<Cliente>();
-        Pattern p = Pattern.compile("\"nombre\"\\s*:\\s*\"([^\"]+)\"\\s*,\\s*\"scoring\"\\s*:\\s*(\\d+)");
-        Matcher m = p.matcher(json);
-        while (m.find()) {
-            String nombre = m.group(1).trim();
-            int scoring = Integer.parseInt(m.group(2));
-            clientes.add(new Cliente(nombre, scoring));
+
+        List<Cliente> clientes = new ArrayList<>();
+
+        JsonObject root = JsonParser.parseString(json).getAsJsonObject();
+        JsonArray arrayClientes = root.getAsJsonArray("clientes");
+
+        for (JsonElement elem : arrayClientes) {
+
+            JsonObject obj = elem.getAsJsonObject();
+
+            String nombre = obj.get("nombre").getAsString();
+            int scoring = obj.get("scoring").getAsInt();
+
+            Cliente cliente = new Cliente(nombre, scoring);
+
+            JsonArray siguiendoArray = obj.getAsJsonArray("siguiendo");
+
+            if (siguiendoArray != null) {
+                for (JsonElement seg : siguiendoArray) {
+                    cliente.seguir(seg.getAsString());
+                }
+            }
+
+            clientes.add(cliente);
         }
+
         return clientes;
     }
 }

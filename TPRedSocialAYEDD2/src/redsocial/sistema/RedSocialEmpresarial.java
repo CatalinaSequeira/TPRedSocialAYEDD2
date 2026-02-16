@@ -4,6 +4,7 @@ import redsocial.modelo.Accion;
 import redsocial.modelo.Cliente;
 import redsocial.modelo.SolicitudSeguimiento;
 import redsocial.modelo.TipoAccion;
+import redsocial.tads.ABB;
 import redsocial.tads.ColaSolicitudes;
 import redsocial.tads.PilaAcciones;
 
@@ -41,10 +42,15 @@ public class RedSocialEmpresarial {
     }
 
 
-  //le cambie el nombre antes era agregarClientesIniciales
   public void cargarClientesJson(List<Cliente> lista) {
     for (Cliente c : lista) {
-      crearYRegistrarCliente(c.getNombre(), c.getScoring());
+      Cliente nuevo = crearYRegistrarCliente(c.getNombre(), c.getScoring());
+
+      // Para que la lista de clientes se guarde con los seguidos que vienen del json,
+      // necesitamos pasarselos nuevamente, porque adentro de crearYRegistrarCliente, se recrean
+      for (String seguido : c.getSeguidos()) {
+        nuevo.seguir(seguido);
+      }
     }
   }
 
@@ -179,8 +185,19 @@ public class RedSocialEmpresarial {
     return lista;
   }
 
+  // Este metodo existe porque es requerimiento de la consigna, se disponibliza aunque no se usa
+  public Set<String> obtenerSeguidosDelCliente(String cliente) {
+    return buscarPorNombre(cliente).getSeguidos();
+  }
 
-
+  public List<Cliente> obtenerClientesCuartoNivelABB() {
+    ABB<Cliente> abb = new ABB<Cliente>();
+    for (Cliente cliente : clientesPorNombre.values()) {
+      abb.insertar(cliente);
+    }
+    abb.imprimir();
+    return abb.obtenerNivel(4);
+  }
 
   //aca tambien, devuelte el tamaño de clientes por nombre
   public int cantidadClientes() {
