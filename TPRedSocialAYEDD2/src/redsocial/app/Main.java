@@ -94,8 +94,12 @@ public class Main {
                     break;
                 case 5:
                     if (red.haySolicitudesPendientes()) {
-                        SolicitudSeguimiento s = red.procesarSiguienteSolicitud();
-                        System.out.println("Procesada: " + s.getSeguidor() + " -> " + s.getSeguido());
+                        try {
+                            SolicitudSeguimiento s = red.procesarSiguienteSolicitud();
+                            System.out.println("Procesada: " + s.getSeguidor() + " -> " + s.getSeguido());
+                        } catch (IllegalStateException e) {
+                            System.out.println(e.getMessage());
+                        }
                     } else {
                         System.out.println("No hay solicitudes pendientes.");
                     }

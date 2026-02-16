@@ -27,3 +27,4 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+/src/redsocial/app/Main2.java

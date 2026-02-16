@@ -13,6 +13,8 @@ public class RedSocialEmpresarial {
 
   //cambie private ArrayList<Cliente> clientes por dos diccionarias diferentes para almacenar por nombre y por scoring
   private Map<String, Cliente> clientesPorNombre;
+
+  // Al usar un TreeMap, se garantiza que los clientes se encuentran ordenados por scoring
   private TreeMap<Integer, ArrayList<Cliente>> clientesPorScoring;
 
   private PilaAcciones historial;
