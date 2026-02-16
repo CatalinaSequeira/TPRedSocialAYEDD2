@@ -1,6 +1,6 @@
 package redsocial.modelo;
 
-public enum TipoAccion {
+public enum     TipoAccion {
     AGREGAR_CLIENTE,
     SEGUIR_CLIENTE
 }

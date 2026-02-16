@@ -53,12 +53,10 @@ class RedSocialEmpresarialTest {
     red.agregarCliente("Alice", 95);
     red.agregarCliente("Bob", 88);
 
-    Cliente c = red.buscarPorScoring(95);
-    assertNotNull(c);
-    assertEquals(95, c.getScoring());
+    ArrayList<Cliente> todos95 = red.buscarPorScoring(95);
 
-    ArrayList<Cliente> todos95 = red.obtenerClientesConScoring(95);
     assertEquals(1, todos95.size());
+    assertEquals(95, todos95.get(0).getScoring());
   }
 
   @Test
@@ -66,7 +64,7 @@ class RedSocialEmpresarialTest {
     red.agregarCliente("Alice", 95);
     red.agregarCliente("Charlie", 95);
 
-    ArrayList<Cliente> lista = red.obtenerClientesConScoring(95);
+    ArrayList<Cliente> lista = red.buscarPorScoring(95);
     assertEquals(2, lista.size());
   }
 
@@ -95,7 +93,8 @@ class RedSocialEmpresarialTest {
 
     Accion desh = red.deshacerUltimaAccion();
     assertNotNull(desh);
-    assertTrue(desh.getDetalles().contains("Bob"));
+    assertEquals(TipoAccion.AGREGAR_CLIENTE, desh.getTipo());
+    assertEquals("Bob", desh.getNombreClienteAgregado());
     assertEquals(1, red.cantidadClientes());
 
     red.deshacerUltimaAccion();
@@ -115,11 +114,11 @@ class RedSocialEmpresarialTest {
     assertTrue(red.haySolicitudesPendientes());
 
     SolicitudSeguimiento s1 = red.procesarSiguienteSolicitud();
-    assertEquals("Alice", s1.getSolicitante());
-    assertEquals("Bob", s1.getObjetivo());
+    assertEquals("Alice", s1.getSeguidor());
+    assertEquals("Bob", s1.getSeguido());
 
     SolicitudSeguimiento s2 = red.procesarSiguienteSolicitud();
-    assertEquals("Bob", s2.getSolicitante());
+    assertEquals("Bob", s2.getSeguidor());
 
     assertFalse(red.haySolicitudesPendientes());
   }
@@ -146,29 +145,6 @@ class RedSocialEmpresarialTest {
     assertThrows(IllegalArgumentException.class, () -> new Cliente("Alice", -1));
   }
 
-  @Test
-  void testObtenerSeguimientos() {
-    red.agregarCliente("Alice", 95);
-    red.agregarCliente("Bob", 88);
-    red.agregarCliente("Charlie", 70);
-
-    red.enviarSolicitudSeguimiento("Alice", "Bob");
-    red.enviarSolicitudSeguimiento("Bob", "Charlie");
-    red.enviarSolicitudSeguimiento("Alice", "Charlie");
-
-    red.procesarSiguienteSolicitud(); // Alice -> Bob
-    red.procesarSiguienteSolicitud(); // Bob -> Charlie
-    red.procesarSiguienteSolicitud(); // Alice -> Charlie
-
-    ArrayList<SolicitudSeguimiento> seguimientos = red.obtenerSeguimientos();
-    assertEquals(3, seguimientos.size());
-    assertEquals("Alice", seguimientos.get(0).getSolicitante());
-    assertEquals("Bob", seguimientos.get(0).getObjetivo());
-    assertEquals("Bob", seguimientos.get(1).getSolicitante());
-    assertEquals("Charlie", seguimientos.get(1).getObjetivo());
-    assertEquals("Alice", seguimientos.get(2).getSolicitante());
-    assertEquals("Charlie", seguimientos.get(2).getObjetivo());
-  }
 
   @Test
   void testObtenerSeguidosPor() {
@@ -189,16 +165,16 @@ class RedSocialEmpresarialTest {
 
     ArrayList<String> seguidosPorAlice = red.obtenerSeguidosPor("Alice");
     assertEquals(2, seguidosPorAlice.size());
-    assertTrue(seguidosPorAlice.contains("Bob"));
-    assertTrue(seguidosPorAlice.contains("Charlie"));
+    assertTrue(seguidosPorAlice.contains("bob"));
+    assertTrue(seguidosPorAlice.contains("charlie"));
 
     ArrayList<String> seguidosPorBob = red.obtenerSeguidosPor("Bob");
     assertEquals(1, seguidosPorBob.size());
-    assertTrue(seguidosPorBob.contains("Charlie"));
+    assertTrue(seguidosPorBob.contains("charlie"));
 
     ArrayList<String> seguidosPorDavid = red.obtenerSeguidosPor("David");
     assertEquals(1, seguidosPorDavid.size());
-    assertTrue(seguidosPorDavid.contains("Alice"));
+    assertTrue(seguidosPorDavid.contains("alice"));
 
     ArrayList<String> seguidosPorNoExiste = red.obtenerSeguidosPor("NoExiste");
     assertTrue(seguidosPorNoExiste.isEmpty());
@@ -206,4 +182,32 @@ class RedSocialEmpresarialTest {
     ArrayList<String> seguidosPorNadie = red.obtenerSeguidosPor("Charlie");
     assertTrue(seguidosPorNadie.isEmpty());
   }
+
+  @Test
+  void testSeguirClienteModificaCliente() {
+    red.agregarCliente("Alice", 95);
+    red.agregarCliente("Bob", 88);
+
+    red.enviarSolicitudSeguimiento("Alice", "Bob");
+    red.procesarSiguienteSolicitud();
+
+    Cliente alice = red.buscarPorNombre("Alice");
+    assertTrue(alice.getSeguidos().contains("bob"));
+  }
+
+  @Test
+  void testDeshacerSeguir() {
+    red.agregarCliente("Alice", 95);
+    red.agregarCliente("Bob", 88);
+
+    red.enviarSolicitudSeguimiento("Alice", "Bob");
+    red.procesarSiguienteSolicitud();
+
+    red.deshacerUltimaAccion();
+
+    Cliente alice = red.buscarPorNombre("Alice");
+    assertFalse(alice.getSeguidos().contains("bob"));
+  }
+
+
 }

@@ -20,7 +20,7 @@ public class CargadorJSON {
         String contenido = leerArchivo(rutaArchivo);
         List<Cliente> clientes = parsearClientes(contenido);
         RedSocialEmpresarial sistema = new RedSocialEmpresarial();
-        sistema.cargarClientesIniciales(clientes);
+        sistema.cargarClientesJson(clientes);
         return sistema;
     }
 

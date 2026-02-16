@@ -7,24 +7,23 @@ import redsocial.modelo.TipoAccion;
 import redsocial.tads.ColaSolicitudes;
 import redsocial.tads.PilaAcciones;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
-/**
- * Sistema de gestion de la red social empresarial.
- * Usa Pila para historial de acciones y Cola para solicitudes.
- */
-
-//
 public class RedSocialEmpresarial {
-  private ArrayList<Cliente> clientes;
-  private ArrayList<SolicitudSeguimiento> seguimientos;
+
+  //cambie private ArrayList<Cliente> clientes por dos diccionarias diferentes para almacenar por nombre y por scoring
+  private Map<String, Cliente> clientesPorNombre;
+  private TreeMap<Integer, ArrayList<Cliente>> clientesPorScoring;
+
   private PilaAcciones historial;
   private ColaSolicitudes solicitudesPendientes;
 
   public RedSocialEmpresarial() {
-    clientes = new ArrayList<Cliente>();
-    seguimientos = new ArrayList<SolicitudSeguimiento>();
+
+    //cambie clientes = new ArrayList<Cliente>(); por la inicializacion de las listas atributo que almacenan los clientes por nombre y por scoring
+    clientesPorNombre = new HashMap<>();
+    clientesPorScoring = new TreeMap<>();
+
     historial = new PilaAcciones();
     historial.inicializarPila();
     solicitudesPendientes = new ColaSolicitudes();
@@ -32,56 +31,72 @@ public class RedSocialEmpresarial {
   }
 
   public void agregarCliente(String nombre, int scoring) {
-    agregarClienteInterno(nombre, scoring, true);
-  }
+    //aca llama a crearYRegistrarCliente que devuelve el cliente que crea y registra, lo guardamos en la variable porque es buena practica pero por ahora no hacemos nada con eso
+    Cliente nuevo = crearYRegistrarCliente(nombre, scoring);
+    //agrega al historial la accion de agregar cliente y guarda el nombre del cliente agregado en el objeto accion creado
+    Accion acc = new Accion(nombre);
+    historial.apilar(acc);
+    }
 
-  public void cargarClientesIniciales(List<Cliente> lista) {
-    for (int i = 0; i < lista.size(); i++) {
-      Cliente c = lista.get(i);
-      agregarClienteInterno(c.getNombre(), c.getScoring(), false);
+
+  //le cambie el nombre antes era agregarClientesIniciales
+  public void cargarClientesJson(List<Cliente> lista) {
+    for (Cliente c : lista) {
+      crearYRegistrarCliente(c.getNombre(), c.getScoring());
     }
   }
 
-  private void agregarClienteInterno(String nombre, int scoring, boolean guardarEnHistorial) {
-    if (buscarPorNombre(nombre) != null) {
+  //le cambie el nombre antes era agregrarClienteInterno
+  private Cliente crearYRegistrarCliente(String nombre, int scoring) {
+    String key = nombre.toLowerCase();
+    //aca en vez de llamar a buscar cliente, pregunta a la lista de clientes por nombre si existe esa llave, entonces es mejor la complejidad de la busqueda (creo)
+    if (clientesPorNombre.containsKey(key)) {
       throw new IllegalArgumentException("Ya existe un cliente con ese nombre");
     }
+    //crea al cliente y lo guarda tanto por nombre como por scoring en las dos listas diferentes
     Cliente nuevo = new Cliente(nombre, scoring);
-    clientes.add(nuevo);
-    if (guardarEnHistorial) {
-      Accion acc = new Accion(TipoAccion.AGREGAR_CLIENTE, "Cliente: " + nombre + ", scoring: " + scoring);
-      historial.apilar(acc);
-    }
+    clientesPorNombre.put(key, nuevo);
+    clientesPorScoring
+            .computeIfAbsent(scoring, k -> new ArrayList<>())
+            .add(nuevo);
+
+    return nuevo;
   }
 
-  //camabir a hashmap --> diccionario
+  //lo busca por nombre en el diccionario que almacena a los clientes por nombre
   public Cliente buscarPorNombre(String nombre) {
-    for (int i = 0; i < clientes.size(); i++) {
-      if (clientes.get(i).getNombre().equalsIgnoreCase(nombre)) {
-        return clientes.get(i);
-      }
-    }
-    return null;
-  }
-  //camabir a hashmap --> diccionario
-  public Cliente buscarPorScoring(int scoring) {
-    for (int i = 0; i < clientes.size(); i++) {
-      if (clientes.get(i).getScoring() == scoring) {
-        return clientes.get(i);
-      }
-    }
-    return null;
+    return clientesPorNombre.get(nombre.toLowerCase());
   }
 
-  public ArrayList<Cliente> obtenerClientesConScoring(int scoring) {
-    ArrayList<Cliente> resultado = new ArrayList<Cliente>();
-    for (int i = 0; i < clientes.size(); i++) {
-      if (clientes.get(i).getScoring() == scoring) {
-        resultado.add(clientes.get(i));
+  //eliminamos buscarClientePorScoring, dejamos solo obtener clientes con Scoring que devuelte un alista de clientes ya que puede haber mas de uno con ese scoring
+  public ArrayList<Cliente> buscarPorScoring(int scoring) {
+    return clientesPorScoring.getOrDefault(scoring, new ArrayList<>());
+  }
+
+  //eliminar cliente ahora elimina al cliente tanto del diccionario por nombre tanto como del diccionario por scoring
+  public void eliminarCliente(String nombre) {
+    Cliente c = clientesPorNombre.remove(nombre.toLowerCase());
+    if (c != null) {
+      ArrayList<Cliente> lista = clientesPorScoring.get(c.getScoring());
+      if (lista != null) {
+        lista.remove(c);
+        if (lista.isEmpty()) {
+          clientesPorScoring.remove(c.getScoring());
+        }
       }
     }
-    return resultado;
   }
+
+
+
+
+
+
+
+
+
+
+
 
   //cambiar la logica de solicitud de seguimiento a Cliente
   public void enviarSolicitudSeguimiento(String solicitante, String objetivo) {
@@ -93,36 +108,43 @@ public class RedSocialEmpresarial {
     if (solicitudesPendientes.colaVacia()) {
       return null;
     }
-    SolicitudSeguimiento sol = solicitudesPendientes.primero();
+    SolicitudSeguimiento solicitud = solicitudesPendientes.primero();
     solicitudesPendientes.desacolar();
 
-    // Al procesar, guardamos el seguimiento confirmado
-    seguimientos.add(sol);
+    Cliente seguidor = buscarPorNombre(solicitud.getSeguidor());
+    Cliente seguido = buscarPorNombre(solicitud.getSeguido());
+    if (seguidor != null && seguido != null) {
+      seguidor.seguir(seguido.getNombre());
+    }
 
-    // Registramos en el historial
-    Accion acc = new Accion(TipoAccion.SEGUIR_CLIENTE, sol.getSolicitante() + " sigue a " + sol.getObjetivo());
-    registrarAccion(acc);
+    Accion acc = new Accion(solicitud.getSeguidor(), solicitud.getSeguido());
+    historial.apilar(acc);
 
-    return sol;
+    return solicitud;
   }
 
-  public ArrayList<SolicitudSeguimiento> obtenerSeguimientos() {
-    return seguimientos;
-  }
+
 
   public ArrayList<String> obtenerSeguidosPor(String nombreCliente) {
-    ArrayList<String> seguidos = new ArrayList<>();
-    for (SolicitudSeguimiento sol : seguimientos) {
-      if (sol.getSolicitante().equalsIgnoreCase(nombreCliente)) {
-        seguidos.add(sol.getObjetivo());
-      }
-    }
-    return seguidos;
+    Cliente c = buscarPorNombre(nombreCliente);
+    if (c == null) return new ArrayList<>();
+    return new ArrayList<>(c.getSeguidos());
   }
 
-  public void registrarAccion(Accion a) {
-    historial.apilar(a);
+
+  public boolean haySolicitudesPendientes() {
+    return !solicitudesPendientes.colaVacia();
   }
+
+
+
+
+
+
+
+
+
+
 
   public Accion deshacerUltimaAccion() {
     if (historial.pilaVacia()) {
@@ -130,15 +152,14 @@ public class RedSocialEmpresarial {
     }
     Accion ultima = historial.tope();
     historial.desapilar();
-    // revertir el efecto segun el tipo de accion
-    if (ultima.getTipo().equals(TipoAccion.AGREGAR_CLIENTE) && ultima.getDetalles() != null) {
-      String det = ultima.getDetalles();
-      if (det.startsWith("Cliente: ")) {
-        int coma = det.indexOf(", scoring:");
-        if (coma > 0) {
-          String nombreCliente = det.substring(9, coma).trim();
-          eliminarCliente(nombreCliente);
-        }
+
+    if (ultima.getTipo() == TipoAccion.AGREGAR_CLIENTE) {
+      eliminarCliente(ultima.getNombreClienteAgregado());
+    }
+    if (ultima.getTipo() == TipoAccion.SEGUIR_CLIENTE) {
+      Cliente c = buscarPorNombre(ultima.getSeguidor());
+      if (c != null) {
+        c.dejarDeSeguir(ultima.getSeguido());
       }
     }
     return ultima;
@@ -156,20 +177,18 @@ public class RedSocialEmpresarial {
     return lista;
   }
 
-  public void eliminarCliente(String nombre) {
-    for (int i = 0; i < clientes.size(); i++) {
-      if (clientes.get(i).getNombre().equalsIgnoreCase(nombre)) {
-        clientes.remove(i);
-        return;
-      }
-    }
-  }
 
+
+
+  //aca tambien, devuelte el tamaño de clientes por nombre
   public int cantidadClientes() {
-    return clientes.size();
+    return clientesPorNombre.size();
   }
 
-  public boolean haySolicitudesPendientes() {
-    return !solicitudesPendientes.colaVacia();
+  public Collection<Cliente> obtenerTodosLosClientes() {
+    return clientesPorNombre.values();
   }
+
+
+
 }

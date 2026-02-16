@@ -71,11 +71,17 @@ public class Main {
                 case 3:
                     System.out.print("Scoring a buscar: ");
                     int scoreBusq = sc.nextInt();
-                    Cliente c2 = red.buscarPorScoring(scoreBusq);
-                    if (c2 != null) {
-                        System.out.println("Encontrado: " + c2);
+                    sc.nextLine();
+
+                    ArrayList<Cliente> lista = red.buscarPorScoring(scoreBusq);
+
+                    if (lista.isEmpty()) {
+                        System.out.println("No se encontraron clientes con ese scoring.");
                     } else {
-                        System.out.println("No encontrado.");
+                        System.out.println("Clientes con scoring " + scoreBusq + ":");
+                        for (Cliente cli : lista) {
+                            System.out.println(" - " + cli);
+                        }
                     }
                     break;
                 case 4:
@@ -89,7 +95,7 @@ public class Main {
                 case 5:
                     if (red.haySolicitudesPendientes()) {
                         SolicitudSeguimiento s = red.procesarSiguienteSolicitud();
-                        System.out.println("Procesada: " + s.getSolicitante() + " -> " + s.getObjetivo());
+                        System.out.println("Procesada: " + s.getSeguidor() + " -> " + s.getSeguido());
                     } else {
                         System.out.println("No hay solicitudes pendientes.");
                     }
@@ -116,14 +122,10 @@ public class Main {
                     System.out.println("Total clientes: " + red.cantidadClientes());
                     break;
                 case 9:
-                    ArrayList<SolicitudSeguimiento> segs = red.obtenerSeguimientos();
-                    if (segs.isEmpty()) {
-                        System.out.println("No hay seguimientos registrados.");
-                    } else {
-                        System.out.println("Seguimientos confirmados:");
-                        for (int i = 0; i < segs.size(); i++) {
-                            SolicitudSeguimiento s = segs.get(i);
-                            System.out.println("  - " + s.getSolicitante() + " -> " + s.getObjetivo());
+                    System.out.println("Seguimientos registrados:");
+                    for (Cliente cli : red.obtenerTodosLosClientes()) {
+                        for (String seguido : cli.getSeguidos()) {
+                            System.out.println(" - " + cli.getNombre() + " -> " + seguido);
                         }
                     }
                     break;

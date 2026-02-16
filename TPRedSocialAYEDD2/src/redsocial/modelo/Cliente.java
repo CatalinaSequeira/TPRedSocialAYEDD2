@@ -1,11 +1,17 @@
 package redsocial.modelo;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Representa un cliente de la red social
  */
 public class Cliente {
   private String nombre;
   private int scoring;
+
+  private Set<String> seguidos = new HashSet<>();
+
 
   public Cliente(String nombre, int scoring) {
     if (nombre == null || nombre.trim().isEmpty()) {
@@ -29,4 +35,17 @@ public class Cliente {
   public String toString() {
     return nombre + " (scoring: " + scoring + ")";
   }
+
+  public void seguir(String nombreClienteASeguir) {
+    seguidos.add(nombreClienteASeguir.toLowerCase());
+  }
+
+  public void dejarDeSeguir(String nombreClienteADejarDeSeguir) {
+    seguidos.remove(nombreClienteADejarDeSeguir.toLowerCase());
+  }
+
+  public Set<String> getSeguidos() {
+    return seguidos;
+  }
+
 }

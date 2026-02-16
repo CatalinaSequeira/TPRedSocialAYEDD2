@@ -4,19 +4,19 @@ package redsocial.modelo;
  * Una solicitud de seguir a otro cliente
  */
 public class SolicitudSeguimiento {
-    private String solicitante;
-    private String objetivo;
+    private String seguidor;
+    private String seguido;
 
-    public SolicitudSeguimiento(String solicitante, String objetivo) {
-        this.solicitante = solicitante.trim();
-        this.objetivo = objetivo.trim();
+    public SolicitudSeguimiento(String seguidor, String seguido) {
+        this.seguidor = seguidor.trim();
+        this.seguido = seguido.trim();
     }
 
-    public String getSolicitante() {
-        return solicitante;
+    public String getSeguidor() {
+        return seguidor;
     }
 
-    public String getObjetivo() {
-        return objetivo;
+    public String getSeguido() {
+        return seguido;
     }
 }
