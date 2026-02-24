@@ -4,6 +4,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import redsocial.modelo.Accion;
 import redsocial.modelo.Cliente;
+import redsocial.modelo.Relacion;
 import redsocial.modelo.SolicitudSeguimiento;
 import redsocial.modelo.TipoAccion;
 import redsocial.persistencia.CargadorJSON;
@@ -13,6 +14,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -209,5 +212,203 @@ class RedSocialEmpresarialTest {
     assertFalse(alice.getSeguidos().contains("bob"));
   }
 
+  // --- Tests de Relaciones ---
+
+  @Test
+  void testAgregarRelacionExitoso() {
+    red.agregarCliente("Alice", 95);
+    red.agregarCliente("Bob", 88);
+
+    boolean agregada = red.agregarRelacion("Alice", "Bob", "conexion");
+    assertTrue(agregada);
+
+    Set<Relacion> relacionesAlice = red.obtenerRelaciones("alice");
+    assertFalse(relacionesAlice.isEmpty());
+    Set<String> vecinosAlice = relacionesAlice.stream()
+        .map(Relacion::getClienteNombre)
+        .collect(Collectors.toSet());
+    assertTrue(vecinosAlice.contains("bob"));
+  }
+
+  @Test
+  void testAgregarRelacionDuplicadaDevuelveFalse() {
+    red.agregarCliente("Alice", 95);
+    red.agregarCliente("Bob", 88);
+
+    assertTrue(red.agregarRelacion("Alice", "Bob", "conexion"));
+    boolean duplicada = red.agregarRelacion("Alice", "Bob", "conexion");
+    assertFalse(duplicada);
+  }
+
+  @Test
+  void testAgregarRelacionNombreVacioLanzaExcepcion() {
+    red.agregarCliente("Alice", 95);
+    red.agregarCliente("Bob", 88);
+
+    assertThrows(IllegalArgumentException.class, () -> red.agregarRelacion("", "Bob", "conexion"));
+    assertThrows(IllegalArgumentException.class, () -> red.agregarRelacion("Alice", "", "conexion"));
+  }
+
+  @Test
+  void testAgregarRelacionTipoVacioLanzaExcepcion() {
+    red.agregarCliente("Alice", 95);
+    red.agregarCliente("Bob", 88);
+
+    assertThrows(IllegalArgumentException.class, () -> red.agregarRelacion("Alice", "Bob", ""));
+    assertThrows(IllegalArgumentException.class, () -> red.agregarRelacion("Alice", "Bob", "   "));
+  }
+
+  @Test
+  void testAgregarRelacionClienteNoExisteLanzaExcepcion() {
+    red.agregarCliente("Alice", 95);
+
+    assertThrows(IllegalArgumentException.class, () -> red.agregarRelacion("Alice", "NoExiste", "conexion"));
+    assertThrows(IllegalArgumentException.class, () -> red.agregarRelacion("NoExiste", "Alice", "conexion"));
+  }
+
+  @Test
+  void testObtenerRelacionesClienteSinRelaciones() {
+    red.agregarCliente("Alice", 95);
+    Set<Relacion> relaciones = red.obtenerRelaciones("alice");
+    assertTrue(relaciones.isEmpty());
+  }
+
+  @Test
+  void testCalcularDistanciaMismoCliente() {
+    red.agregarCliente("Alice", 95);
+    assertEquals(0, red.calcularDistancia("Alice", "Alice"));
+  }
+
+  @Test
+  void testCalcularDistanciaVecinosDirectos() {
+    red.agregarCliente("Alice", 95);
+    red.agregarCliente("Bob", 88);
+    red.agregarRelacion("Alice", "Bob", "conexion");
+
+    assertEquals(1, red.calcularDistancia("Alice", "Bob"));
+    assertEquals(1, red.calcularDistancia("Bob", "Alice"));
+  }
+
+  @Test
+  void testCalcularDistanciaDosSaltos() {
+    red.agregarCliente("Alice", 95);
+    red.agregarCliente("Bob", 88);
+    red.agregarCliente("Charlie", 70);
+    red.agregarRelacion("Alice", "Bob", "conexion");
+    red.agregarRelacion("Bob", "Charlie", "conexion");
+
+    assertEquals(2, red.calcularDistancia("Alice", "Charlie"));
+    assertEquals(2, red.calcularDistancia("Charlie", "Alice"));
+  }
+
+  @Test
+  void testCalcularDistanciaSinCamino() {
+    red.agregarCliente("Alice", 95);
+    red.agregarCliente("Bob", 88);
+    red.agregarCliente("Charlie", 70);
+    red.agregarRelacion("Alice", "Bob", "conexion");
+    // Charlie desconectado
+
+    assertEquals(-1, red.calcularDistancia("Alice", "Charlie"));
+    assertEquals(-1, red.calcularDistancia("Charlie", "Bob"));
+  }
+
+  @Test
+  void testCalcularDistanciaClienteNoExiste() {
+    red.agregarCliente("Alice", 95);
+    assertEquals(-1, red.calcularDistancia("Alice", "NoExiste"));
+    assertEquals(-1, red.calcularDistancia("NoExiste", "Alice"));
+  }
+
+  @Test
+  void testCargaJSONConRelaciones() throws IOException {
+    File temp = File.createTempFile("clientes", ".json");
+    FileWriter fw = new FileWriter(temp);
+    fw.write("{\"clientes\":[{\"nombre\":\"A\",\"scoring\":100,\"siguiendo\":[]},");
+    fw.write("{\"nombre\":\"B\",\"scoring\":90,\"siguiendo\":[]},");
+    fw.write("{\"nombre\":\"C\",\"scoring\":80,\"siguiendo\":[]}],");
+    fw.write("\"relaciones\":[{\"cliente1\":\"A\",\"cliente2\":\"B\",\"tipo\":\"conexion\"},");
+    fw.write("{\"cliente1\":\"B\",\"cliente2\":\"C\",\"tipo\":\"conexion\"}]}");
+    fw.close();
+
+    RedSocialEmpresarial sistema = CargadorJSON.CargarDesdeArchivo(temp.getAbsolutePath());
+    assertEquals(3, sistema.cantidadClientes());
+
+    assertEquals(1, sistema.calcularDistancia("A", "B"));
+    assertEquals(2, sistema.calcularDistancia("A", "C"));
+    assertEquals(1, sistema.calcularDistancia("B", "C"));
+
+    temp.delete();
+  }
+
+  @Test
+  void testCargaJSONConRelacionesDuplicadasIgnoraDuplicados() throws IOException {
+    File temp = File.createTempFile("clientes", ".json");
+    FileWriter fw = new FileWriter(temp);
+    fw.write("{\"clientes\":[{\"nombre\":\"A\",\"scoring\":100,\"siguiendo\":[]},");
+    fw.write("{\"nombre\":\"B\",\"scoring\":90,\"siguiendo\":[]}],");
+    fw.write("\"relaciones\":[{\"cliente1\":\"A\",\"cliente2\":\"B\",\"tipo\":\"conexion\"},");
+    fw.write("{\"cliente1\":\"A\",\"cliente2\":\"B\",\"tipo\":\"conexion\"}]}");
+    fw.close();
+
+    RedSocialEmpresarial sistema = CargadorJSON.CargarDesdeArchivo(temp.getAbsolutePath());
+    assertEquals(2, sistema.cantidadClientes());
+    assertEquals(1, sistema.calcularDistancia("A", "B"));
+
+    temp.delete();
+  }
+
+  @Test
+  void testContarSeguidoresReales() {
+    red.agregarCliente("Alice", 95);
+    red.agregarCliente("Bob", 88);
+    red.agregarCliente("Charlie", 70);
+    red.agregarCliente("David", 60);
+
+    red.enviarSolicitudSeguimiento("Alice", "Bob");
+    red.enviarSolicitudSeguimiento("Charlie", "Bob");
+    red.enviarSolicitudSeguimiento("David", "Bob");
+
+    red.procesarSiguienteSolicitud();
+    red.procesarSiguienteSolicitud();
+    red.procesarSiguienteSolicitud();
+
+    assertEquals(3, red.contarSeguidores("Bob"));
+    assertEquals(0, red.contarSeguidores("Alice"));
+    assertEquals(0, red.contarSeguidores("NoExiste"));
+  }
+
+  @Test
+  void testMasSeguidoEnCuartoNivelABB() {
+    for (int i = 1; i <= 15; i++) {
+      red.agregarCliente("C" + i, i * 10);
+    }
+
+    ArrayList<Cliente> nivel4 = new ArrayList<>(red.obtenerClientesCuartoNivelABB());
+    assertFalse(nivel4.isEmpty());
+
+    String objetivo = nivel4.get(0).getNombre();
+
+    ArrayList<String> candidatos = new ArrayList<>(
+        java.util.List.of("C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9"));
+    candidatos.remove(objetivo);
+
+    String f1 = candidatos.get(0);
+    String f2 = candidatos.get(1);
+    String f3 = candidatos.get(2);
+
+    red.enviarSolicitudSeguimiento(f1, objetivo);
+    red.enviarSolicitudSeguimiento(f2, objetivo);
+    red.enviarSolicitudSeguimiento(f3, objetivo);
+
+    red.procesarSiguienteSolicitud();
+    red.procesarSiguienteSolicitud();
+    red.procesarSiguienteSolicitud();
+
+    Cliente masSeguido = red.obtenerClienteMasSeguidoresCuartoNivelABB();
+    assertNotNull(masSeguido);
+    assertEquals(objetivo, masSeguido.getNombre());
+    assertEquals(3, red.contarSeguidores(objetivo));
+  }
 
 }

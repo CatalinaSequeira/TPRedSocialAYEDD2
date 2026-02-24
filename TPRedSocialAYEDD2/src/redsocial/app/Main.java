@@ -21,7 +21,7 @@ public class Main {
 
         // intentar cargar datos iniciales
         try {
-            String ruta = "data/clientes.json";
+            String ruta = "TPRedSocialAYEDD2/TPRedSocialAYEDD2/data/clientes.json";
             red = CargadorJSON.CargarDesdeArchivo(ruta);
             System.out.println("Se cargaron " + red.cantidadClientes() + " clientes desde el archivo.");
         } catch (IOException e) {
@@ -42,6 +42,8 @@ public class Main {
             System.out.println("9. Listar seguimientos");
             System.out.println("10. Ver a quien sigue un cliente");
             System.out.println("11. Imprimir cuarto nivel de ABB");
+            System.out.println("12. Agregar relacion entre clientes");
+            System.out.println("13. Calcular distancia entre clientes");
             System.out.println("0. Salir");
             System.out.print("Opcion: ");
             opcion = sc.nextInt();
@@ -158,18 +160,45 @@ public class Main {
                         for (Cliente cli : nivel4) {
                             System.out.println(" - " + cli.getNombre() +
                                     " (scoring: " + cli.getScoring() +
-                                    ", seguidores: " + cli.getSeguidos().size() + ")");
+                                    ", seguidores: " + red.contarSeguidores(cli.getNombre()) + ")");
                         }
 
-                        Cliente masSeguido = nivel4.get(0);
-                        for (Cliente cli : nivel4) {
-                            if (cli.getSeguidos().size() > masSeguido.getSeguidos().size()) {
-                                masSeguido = cli;
-                            }
-                        }
+                        Cliente masSeguido = red.obtenerClienteMasSeguidoresCuartoNivelABB();
 
                         System.out.println("\nEl cliente con mas seguidores en nivel 4 es: "
-                                + masSeguido.getNombre());
+                                + masSeguido.getNombre() +
+                                " (" + red.contarSeguidores(masSeguido.getNombre()) + " seguidores)");
+                    }
+                    break;
+                case 12:
+                    System.out.print("Nombre del primer cliente: ");
+                    String rel1 = sc.nextLine();
+                    System.out.print("Nombre del segundo cliente: ");
+                    String rel2 = sc.nextLine();
+                    System.out.print("Tipo de relacion (ej: conexion): ");
+                    String tipoRel = sc.nextLine();
+                    if (tipoRel.isBlank()) tipoRel = "conexion";
+                    try {
+                        boolean agregada = red.agregarRelacion(rel1, rel2, tipoRel);
+                        if (agregada) {
+                            System.out.println("Relacion agregada entre " + rel1 + " y " + rel2 + ".");
+                        } else {
+                            System.out.println("La relacion ya existia (duplicada).");
+                        }
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("Error: " + e.getMessage());
+                    }
+                    break;
+                case 13:
+                    System.out.print("Cliente origen: ");
+                    String origen = sc.nextLine();
+                    System.out.print("Cliente destino: ");
+                    String destino = sc.nextLine();
+                    int distancia = red.calcularDistancia(origen, destino);
+                    if (distancia == -1) {
+                        System.out.println("No hay camino entre " + origen + " y " + destino + " (o alguno no existe).");
+                    } else {
+                        System.out.println("Distancia entre " + origen + " y " + destino + ": " + distancia + " salto(s).");
                     }
                     break;
                 case 0:

@@ -44,6 +44,7 @@ public class Cliente implements Comparable<Cliente> {
       throw new IllegalStateException("El cliente ya sigue a " + nombreClienteASeguir);
     }
 
+    //Iteracion 2: o Cada cliente puede seguir hasta dos clientes.
     if (seguidos.size() >= 2) {
       throw new IllegalStateException("Un cliente solo puede seguir hasta dos clientes y %s ya sigue a %s".formatted(nombre, seguidos));
     }

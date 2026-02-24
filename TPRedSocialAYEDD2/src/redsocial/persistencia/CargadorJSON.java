@@ -12,8 +12,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Carga los clientes desde un archivo JSON
@@ -22,9 +20,16 @@ public class CargadorJSON {
 
     public static RedSocialEmpresarial CargarDesdeArchivo(String rutaArchivo) throws IOException {
         String contenido = leerArchivo(rutaArchivo);
-        List<Cliente> clientes = parsearClientes(contenido);
+        JsonObject root = JsonParser.parseString(contenido).getAsJsonObject();
+
+        List<Cliente> clientes = parsearClientes(root);
         RedSocialEmpresarial sistema = new RedSocialEmpresarial();
         sistema.cargarClientesJson(clientes);
+
+        if (root.has("relaciones")) {
+            parsearYCargarRelaciones(root.getAsJsonArray("relaciones"), sistema);
+        }
+
         return sistema;
     }
 
@@ -39,11 +44,8 @@ public class CargadorJSON {
         return sb.toString();
     }
 
-    public static List<Cliente> parsearClientes(String json) {
-
+    public static List<Cliente> parsearClientes(JsonObject root) {
         List<Cliente> clientes = new ArrayList<>();
-
-        JsonObject root = JsonParser.parseString(json).getAsJsonObject();
         JsonArray arrayClientes = root.getAsJsonArray("clientes");
 
         for (JsonElement elem : arrayClientes) {
@@ -68,4 +70,16 @@ public class CargadorJSON {
 
         return clientes;
     }
+
+    private static void parsearYCargarRelaciones(JsonArray arrayRelaciones, RedSocialEmpresarial sistema) {
+        if (arrayRelaciones == null) return;
+        for (JsonElement elem : arrayRelaciones) {
+            JsonObject rel = elem.getAsJsonObject();
+            String cliente1 = rel.get("cliente1").getAsString();
+            String cliente2 = rel.get("cliente2").getAsString();
+            String tipo = rel.has("tipo") ? rel.get("tipo").getAsString() : "conexion";
+            sistema.agregarRelacion(cliente1, cliente2, tipo);
+        }
+    }
+
 }
