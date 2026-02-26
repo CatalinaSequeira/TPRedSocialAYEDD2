@@ -75,12 +75,20 @@ public class RedSocialEmpresarial {
 
   // O(1) Gracias al acceso directo al hashmap
   public Set<Relacion> obtenerRelaciones(String nombreCliente){
+    if (nombreCliente == null || nombreCliente.isBlank()) {
+      return new HashSet<>();
+    }
+
+    String key = nombreCliente.toLowerCase();
+
     // Obtengo las relaciones dado el nombre de un cliente
-    HashSet<Relacion> relaciones = clientesRelacionados.get(nombreCliente);
+    HashSet<Relacion> relaciones = clientesRelacionados.get(key);
+
     // Valido que tenga relaciones
     if (relaciones == null){
       return new HashSet<>();
     }
+
     // devuelvo las relaciones
     return relaciones;
   }
@@ -88,14 +96,17 @@ public class RedSocialEmpresarial {
   public int calcularDistancia(String nombreClienteOrigen, String nombreClienteDestino){
       String keyOrigen = nombreClienteOrigen.toLowerCase();
       String keyDestino = nombreClienteDestino.toLowerCase();
+
       // Caso base
       if(keyOrigen.equals(keyDestino)){
         return 0;
       }
+
       // Validar que keyOrigen exista 
       if (!clientesPorNombre.containsKey(keyOrigen) || !clientesPorNombre.containsKey(keyDestino)) {
         return -1;
       }
+
       // BFS (Breadth First Search)
       Queue<String> cola = new LinkedList<>();
       Map<String, Integer> distancia = new HashMap<>(); // cliente -> cantidad de saltos
@@ -107,22 +118,26 @@ public class RedSocialEmpresarial {
       distancia.put(keyOrigen, 0);
       // Conjunto que lleva registro de los clientes consultados
       visitados.add(keyOrigen);
+
       // Bucle mientras haya clientes (nodos) que consultar
       while (!cola.isEmpty()) {
         // Obtengo el nodo actual
         String actual = cola.poll();
         // Calculo la distancia actual
         int distActual = distancia.get(actual);
+
         // Obtengo sus vecinos (Relaciones)
         HashSet<Relacion> vecinos = clientesRelacionados.get(actual);
         if (vecinos == null)
           continue;
+
         // Loop por todas sus relaciones
         for (Relacion vecino : vecinos) {
           // Caso 1: Encuentro el cliente destino
           if (vecino.getClienteNombre().equals(keyDestino)) {
             return distActual + 1;
           }
+
           // Caso 2: No visite al cliente todavia
           if (!visitados.contains(vecino.getClienteNombre())) {
             // Lo marco visitado
@@ -234,7 +249,6 @@ public class RedSocialEmpresarial {
     return solicitud;
   }
 
-  //Iteracion 2: o Permitir la consulta de las conexiones de un cliente (a quiénes sigue).
   public ArrayList<String> obtenerSeguidosPor(String nombreCliente) {
     Cliente c = buscarPorNombre(nombreCliente);
     if (c == null) return new ArrayList<>();

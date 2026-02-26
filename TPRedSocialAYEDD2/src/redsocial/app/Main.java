@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 /**
  * Programa principal - menu para probar el sistema
@@ -42,7 +43,7 @@ public class Main {
             System.out.println("9. Listar seguimientos");
             System.out.println("10. Ver a quien sigue un cliente");
             System.out.println("11. Imprimir cuarto nivel de ABB");
-            System.out.println("12. Agregar relacion entre clientes");
+            System.out.println("12. Agregar relacion entre clientes y ver vecinos");
             System.out.println("13. Calcular distancia entre clientes");
             System.out.println("0. Salir");
             System.out.print("Opcion: ");
@@ -175,13 +176,24 @@ public class Main {
                     String rel1 = sc.nextLine();
                     System.out.print("Nombre del segundo cliente: ");
                     String rel2 = sc.nextLine();
-                    System.out.print("Tipo de relacion (ej: conexion): ");
+                    System.out.print("Tipo de relacion (ej: amigo, primo, hermano): ");
                     String tipoRel = sc.nextLine();
                     if (tipoRel.isBlank()) tipoRel = "conexion";
                     try {
                         boolean agregada = red.agregarRelacion(rel1, rel2, tipoRel);
                         if (agregada) {
                             System.out.println("Relacion agregada entre " + rel1 + " y " + rel2 + ".");
+                            // Mostrar vecinos (relaciones) del primer cliente luego de agregar
+                            Set<redsocial.modelo.Relacion> relacionesVecinos = red.obtenerRelaciones(rel1);
+                            if (relacionesVecinos.isEmpty()) {
+                                System.out.println("El cliente " + rel1 + " no tiene vecinos (relaciones).");
+                            } else {
+                                System.out.println("Vecinos de " + rel1 + ":");
+                                for (redsocial.modelo.Relacion relacion : relacionesVecinos) {
+                                    System.out.println("  - " + relacion.getClienteNombre() +
+                                            " (tipo: " + relacion.getTipoRelacion() + ")");
+                                }
+                            }
                         } else {
                             System.out.println("La relacion ya existia (duplicada).");
                         }
